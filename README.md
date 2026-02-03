@@ -13,7 +13,14 @@ A production-grade TypeScript SDK for managing custom domains using Cloudflare l
 ## Installation
 
 ```bash
+# bun
 bun add custom-domain-sdk
+# npm
+npm install custom-domain-sdk
+# yarn
+yarn add custom-domain-sdk
+# pnpm
+pnpm add custom-domain-sdk
 ```
 
 ## Quick Start
