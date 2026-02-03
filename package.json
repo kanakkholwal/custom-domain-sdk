@@ -1,6 +1,6 @@
 {
   "name": "custom-domain-sdk",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "TypeScript SDK for managing custom domains",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
