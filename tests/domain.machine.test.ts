@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { assertTransition, canTransition } from "../src/core/domain.machine.js";
-import { InvalidStateTransitionError } from "../src/errors/errors.js";
+import { assertTransition, canTransition } from "../src/core/domain.machine";
+import { InvalidStateTransitionError } from "../src/errors/errors";
 
 describe("DomainMachine", () => {
     describe("canTransition", () => {

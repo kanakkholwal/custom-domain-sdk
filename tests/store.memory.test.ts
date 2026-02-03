@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import { InMemoryDomainStore } from "../src/adapters/store.memory.js";
-import { Domain } from "../src/core/domain.types.js";
-import { DomainNotFoundError } from "../src/errors/errors.js";
+import { Domain } from "../src/core/domain.types";
+import { InMemoryDomainStore } from "../src/core/store.memory";
+import { DomainNotFoundError } from "../src/errors/errors";
 
 describe("InMemoryDomainStore", () => {
     let store: InMemoryDomainStore;

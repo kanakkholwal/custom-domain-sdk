@@ -1,19 +1,18 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
-import { CloudflareAdapter } from "../src/adapters/cloudflare.adapter.js";
-import { DnsResolver } from "../src/adapters/dns.adapter.js";
-import { InMemoryDomainStore } from "../src/adapters/store.memory.js";
-import { DomainService } from "../src/core/domain.service.js";
+import { AdapterInterface } from "../src/adapters/interface";
+import { DomainService } from "../src/core/domain.service";
+import { InMemoryDomainStore } from "../src/core/store.memory";
+import { DnsResolver } from "../src/dns/dns.resolver";
 import {
-    CloudflareApiError,
     DnsVerificationFailedError,
     DomainNotFoundError
-} from "../src/errors/errors.js";
+} from "../src/errors/errors";
 
 describe("DomainService", () => {
     let service: DomainService;
     let store: InMemoryDomainStore;
     let mockDns: DnsResolver;
-    let mockCf: CloudflareAdapter;
+    let mockAdapter: AdapterInterface<any>;
 
     const CNAME_TARGET = "edge.example.com";
 
@@ -24,16 +23,16 @@ describe("DomainService", () => {
             resolveCname: mock(async () => []),
             resolveA: mock(async () => []),
         };
-        mockCf = {
-            createCustomHostname: mock(async () => "cdl-123"),
-            getCustomHostnameStatus: mock(async (id: string) => ({ id, status: "pending" as const, sslStatus: "pending" })),
+        mockAdapter = {
+            createCustomHostname: mock(async () => "adapter-123"),
+            getCustomHostnameStatus: mock(async (id: string) => ({ id, status: "pending" as const })),
             deleteCustomHostname: mock(async () => { }),
         };
 
         service = new DomainService({
             store,
             dns: mockDns,
-            cloudflare: mockCf,
+            adapter: mockAdapter,
             cnameTarget: CNAME_TARGET,
         });
     });
@@ -47,6 +46,7 @@ describe("DomainService", () => {
             // 1. Create
             const createRes = await service.createDomain(hostname);
             expect(createRes.status).toBe("pending_verification");
+            expect(createRes.verification).toBeDefined();
 
             // 2. Verify
             mockDns.resolveTxt = mock(async () => [createRes.verification!.value]);
@@ -63,7 +63,10 @@ describe("DomainService", () => {
             expect(provisionRes.status).toBe("provisioning_ssl");
 
             // 5. Sync
-            mockCf.getCustomHostnameStatus = mock(async (id: string) => ({ id, status: "active" as const, sslStatus: "active" }));
+            mockAdapter.getCustomHostnameStatus = mock(async (id: string) => ({
+                id,
+                status: "active" as const
+            }));
             const syncRes = await service.syncStatus(hostname);
             expect(syncRes.status).toBe("active");
         });
@@ -73,7 +76,7 @@ describe("DomainService", () => {
             await service.createDomain(hostname);
             mockDns.resolveTxt = mock(async () => ["wrong-token"]);
 
-            expect(service.checkVerification(hostname)).rejects.toThrow(DnsVerificationFailedError);
+            await expect(service.checkVerification(hostname)).rejects.toThrow(DnsVerificationFailedError);
         });
 
         it("should fail provisioning if CNAME doesn't point to target", async () => {
@@ -81,30 +84,51 @@ describe("DomainService", () => {
             await service.createDomain(hostname);
 
             const domain = await store.getByHostname(hostname);
-            if (domain) await store.update({ ...domain, status: "verified" });
+            if (domain) await store.update({ ...domain, status: "pending_dns" });
 
-            await service.getDnsInstructions(hostname);
             mockDns.resolveCname = mock(async () => ["wrong.target.com"]);
+            mockDns.resolveA = mock(async () => []);
 
-            await expect(service.provisionDomain(hostname)).rejects.toThrow(CloudflareApiError);
+            await expect(service.provisionDomain(hostname)).rejects.toThrow(DnsVerificationFailedError);
         });
 
-        it("should transition to failed if Cloudflare API fails during provisioning", async () => {
-            const hostname = getRandHostname("fail-cf");
+        it("should transition to failed if Adapter API fails during provisioning", async () => {
+            const hostname = getRandHostname("fail-adapter");
             await service.createDomain(hostname);
 
             const domain = await store.getByHostname(hostname);
-            if (domain) await store.update({ ...domain, status: "verified" });
-
-            await service.getDnsInstructions(hostname);
+            if (domain) await store.update({ ...domain, status: "pending_dns" });
 
             mockDns.resolveCname = mock(async () => [CNAME_TARGET]);
-            mockCf.createCustomHostname = mock(async () => { throw new Error("CF API Down"); });
+            mockAdapter.createCustomHostname = mock(async () => { throw new Error("Adapter API Down"); });
 
-            await expect(service.provisionDomain(hostname)).rejects.toThrow("CF API Down");
+            await expect(service.provisionDomain(hostname)).rejects.toThrow("Adapter API Down");
 
             const status = await service.getStatus(hostname);
             expect(status.status).toBe("failed");
+        });
+
+        it("should transition to failed if adapter reports failure during sync", async () => {
+            const hostname = getRandHostname("fail-sync");
+            await service.createDomain(hostname);
+
+            const domain = await store.getByHostname(hostname);
+            if (domain) await store.update({
+                ...domain,
+                status: "provisioning_ssl",
+                adapterHostnameId: "adapter-123"
+            });
+
+            mockAdapter.getCustomHostnameStatus = mock(async () => ({
+                status: "failed",
+                verificationErrors: ["SSL resolution failed"]
+            }));
+
+            const syncRes = await service.syncStatus(hostname);
+            expect(syncRes.status).toBe("failed");
+
+            const finalDomain = await store.getByHostname(hostname);
+            expect(finalDomain?.error).toBe("SSL resolution failed");
         });
     });
 

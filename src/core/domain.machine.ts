@@ -1,6 +1,6 @@
 // DO NOT MODIFY WITHOUT A MIGRATION PLAN
-import { InvalidStateTransitionError } from "../errors/errors.js";
-import { DomainStatus } from "./domain.types.js";
+import { InvalidStateTransitionError } from "../errors/errors";
+import { DomainStatus } from "./domain.types";
 
 /**
  * Explicit, single-step, forward-only transitions.
@@ -20,7 +20,7 @@ export function canTransition(
     from: DomainStatus,
     to: DomainStatus
 ): boolean {
-    return STATE_TRANSITIONS[from].includes(to);
+    return STATE_TRANSITIONS[from]?.includes(to) ?? false;
 }
 
 export function assertTransition(
