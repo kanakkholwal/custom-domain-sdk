@@ -9,7 +9,7 @@ const STATE_TRANSITIONS: Record<DomainStatus, DomainStatus[]> = {
     created: ["pending_verification"],
     pending_verification: ["verified", "failed"],
     verified: ["pending_dns"],
-    pending_dns: ["provisioning_ssl"],
+    pending_dns: ["provisioning_ssl", "failed"],
     provisioning_ssl: ["active", "failed"],
     active: [],
     failed: [],
