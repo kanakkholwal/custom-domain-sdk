@@ -1,25 +1,32 @@
 import { InvalidStateTransitionError } from "../errors/errors.js";
 import { DomainStatus } from "./domain.types.js";
 
-export class DomainMachine {
-    private static transitions: Record<DomainStatus, DomainStatus[]> = {
-        created: ["pending_verification", "failed"],
-        pending_verification: ["verified", "failed"],
-        verified: ["pending_dns", "failed"],
-        pending_dns: ["provisioning_ssl", "failed"],
-        provisioning_ssl: ["active", "failed"],
-        active: ["failed"], // Can move to failed if sync fails later
-        failed: ["pending_verification"], // Allow retry from start of verification
-    };
+/**
+ * Explicit, single-step, forward-only transitions.
+ * No retries. No magic. Deterministic.
+ */
+const STATE_TRANSITIONS: Record<DomainStatus, DomainStatus[]> = {
+    created: ["pending_verification"],
+    pending_verification: ["verified", "failed"],
+    verified: ["pending_dns"],
+    pending_dns: ["provisioning_ssl"],
+    provisioning_ssl: ["active", "failed"],
+    active: [],
+    failed: [],
+};
 
-    /**
-     * Validates if a transition from current to next is allowed.
-     * Throws InvalidStateTransitionError if not allowed.
-     */
-    static validateTransition(current: DomainStatus, next: DomainStatus): void {
-        const allowed = this.transitions[current];
-        if (!allowed.includes(next)) {
-            throw new InvalidStateTransitionError(current, next);
-        }
+export function canTransition(
+    from: DomainStatus,
+    to: DomainStatus
+): boolean {
+    return STATE_TRANSITIONS[from].includes(to);
+}
+
+export function assertTransition(
+    from: DomainStatus,
+    to: DomainStatus
+): void {
+    if (!canTransition(from, to)) {
+        throw new InvalidStateTransitionError(from, to);
     }
 }

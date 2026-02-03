@@ -2,9 +2,9 @@ import {
     CloudflareAdapter,
     CloudflareHostnameResponse,
     DomainService,
-    MemoryDomainStore,
+    InMemoryDomainStore,
     NodeDnsResolver
-} from "../src/index";
+} from "../dist";
 
 /**
  * A mock Cloudflare adapter for demonstration purposes.
@@ -30,7 +30,7 @@ class MockCloudflareAdapter implements CloudflareAdapter {
 }
 
 async function run() {
-    const store = new MemoryDomainStore();
+    const store = new InMemoryDomainStore();
     const dns = new NodeDnsResolver();
     const cloudflare = new MockCloudflareAdapter();
 

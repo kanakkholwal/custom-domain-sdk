@@ -7,7 +7,7 @@ import {
     DnsVerificationFailedError,
     DomainNotFoundError,
 } from "../errors/errors.js";
-import { DomainMachine } from "./domain.machine.js";
+import { assertTransition } from "./domain.machine.js";
 import { Domain, DomainInstructions, DomainStatus } from "./domain.types.js";
 
 export interface SDKConfig {
@@ -16,6 +16,8 @@ export interface SDKConfig {
     cloudflare: CloudflareAdapter;
     cnameTarget: string;
 }
+
+const verificationKey = "_cdl-tenancy-verification";
 
 export class DomainService {
     constructor(private config: SDKConfig) { }
@@ -35,10 +37,13 @@ export class DomainService {
             updatedAt: new Date(),
         };
 
+        assertTransition("created", "pending_verification");
+
+        domain.status = "pending_verification";
         await this.config.store.create(domain);
 
-        // Auto-advance to pending_verification
-        return this.transition(domain, "pending_verification");
+        return this.getInstructions(domain);
+
     }
 
     async checkVerification(hostname: string): Promise<DomainInstructions> {
@@ -48,9 +53,9 @@ export class DomainService {
             return this.getInstructions(domain);
         }
 
-        DomainMachine.validateTransition(domain.status, "verified");
+        assertTransition(domain.status, "verified");
 
-        const txtRecords = await this.config.dns.resolveTxt(`_cf-verification.${domain.hostname}`);
+        const txtRecords = await this.config.dns.resolveTxt(`${verificationKey}.${domain.hostname}`);
 
         if (txtRecords.includes(domain.verificationToken)) {
             return this.transition(domain, "verified");
@@ -70,7 +75,7 @@ export class DomainService {
             return this.getInstructions(domain);
         }
 
-        DomainMachine.validateTransition(domain.status, "pending_dns");
+        assertTransition(domain.status, "pending_dns");
 
         return this.transition(domain, "pending_dns");
     }
@@ -82,7 +87,7 @@ export class DomainService {
             return this.getInstructions(domain);
         }
 
-        DomainMachine.validateTransition(domain.status, "provisioning_ssl");
+        assertTransition(domain.status, "provisioning_ssl");
 
         // Verify DNS points to us before calling Cloudflare
         const cnames = await this.config.dns.resolveCname(domain.hostname);
@@ -119,7 +124,10 @@ export class DomainService {
 
             return this.getInstructions(domain);
         } catch (err) {
-            return this.getInstructions(domain); // Fail silently on sync polling, just return current state
+            // unacceptable to fail here
+            // return this.getInstructions(domain); 
+            throw err;
+
         }
     }
 
@@ -139,7 +147,7 @@ export class DomainService {
     }
 
     private async transition(domain: Domain, next: DomainStatus, error?: string): Promise<DomainInstructions> {
-        DomainMachine.validateTransition(domain.status, next);
+        assertTransition(domain.status, next);
 
         domain.status = next;
         domain.updatedAt = new Date();
@@ -159,7 +167,7 @@ export class DomainService {
         if (domain.status === "pending_verification") {
             instructions.verification = {
                 type: "TXT",
-                name: `_cf-verification.${domain.hostname}`,
+                name: `${verificationKey}.${domain.hostname}`,
                 value: domain.verificationToken,
                 description: "Add this TXT record to verify ownership of the domain.",
             };

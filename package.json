@@ -1,12 +1,12 @@
 {
-  "name": "@kunix/custom-domain-sdk",
+  "name": "custom-domain-sdk",
   "version": "1.0.0",
-  "description": "Production-grade TypeScript SDK for managing custom domains using Cloudflare",
+  "description": "TypeScript SDK for managing custom domains",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "bun test"
   },
   "keywords": [
     "cloudflare",
@@ -15,7 +15,10 @@
     "dns",
     "sdk"
   ],
-  "author": "",
+  "author": {
+    "name": "Kanak Kholwal",
+    "url": "https://github.com/kanakkholwal"
+  },
   "license": "MIT",
   "devDependencies": {
     "typescript": "^5.0.0",

@@ -13,7 +13,7 @@ A production-grade TypeScript SDK for managing custom domains using Cloudflare C
 ## Installation
 
 ```bash
-bun add @kunix/custom-domain-sdk
+bun add custom-domain-sdk
 ```
 
 ## Quick Start
@@ -23,7 +23,7 @@ import {
   DomainService, 
   MemoryDomainStore, 
   NodeDnsResolver 
-} from "@kunix/custom-domain-sdk";
+} from "custom-domain-sdk";
 
 const sdk = new DomainService({
   store: new MemoryDomainStore(),
