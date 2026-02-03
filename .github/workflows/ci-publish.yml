@@ -66,13 +66,11 @@ jobs:
       - name: Update package version
         if: github.event_name == 'workflow_dispatch'
         run: |
-          cd emails
           npm version ${{ github.event.inputs.version }} --no-git-tag-version
 
       - name: Update package version (from tag)
         if: github.event_name == 'push'
         run: |
-          cd emails
           npm version ${{ steps.extract_version.outputs.version }} --no-git-tag-version
 
       # ====================================================================
@@ -86,8 +84,7 @@ jobs:
 
       - name: Verify build output
         run: |
-          ls -la package/
-          ls -la package/dist/
+          ls -la dist/
           echo "Build verification complete"
 
       # ====================================================================
