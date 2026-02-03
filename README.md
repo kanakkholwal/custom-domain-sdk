@@ -1,6 +1,6 @@
 # Custom Domain SDK
 
-A production-grade TypeScript SDK for managing custom domains using Cloudflare Custom Hostnames. This SDK is framework-agnostic, database-agnostic, and implements a strict domain lifecycle state machine.
+A production-grade TypeScript SDK for managing custom domains using Cloudflare like Custom Hostnames. This SDK is framework-agnostic, database-agnostic, and implements a strict domain lifecycle state machine.
 
 ## Features
 
@@ -28,7 +28,7 @@ import {
 const sdk = new DomainService({
   store: new MemoryDomainStore(),
   dns: new NodeDnsResolver(),
-  cloudflare: myCloudflareAdapter,
+  adapter: myCloudflareAdapter,
   cnameTarget: "edge.yourapp.com"
 });
 
@@ -52,13 +52,13 @@ await sdk.syncStatus("customer.com");
 
 The SDK enforces the following state transitions:
 
-1.  **created**: Internal record created.
-2.  **pending_verification**: Waiting for TXT record verification.
-3.  **verified**: TXT record matched.
-4.  **pending_dns**: Waiting for CNAME/A record to point to our edge.
-5.  **provisioning_ssl**: Calling Cloudflare to issue certificates.
-6.  **active**: Domain is live.
-7.  **failed**: Terminating state for any step.
+1. **created**: Internal record created.
+2. **pending_verification**: Waiting for TXT record verification.
+3. **verified**: TXT record matched.
+4. **pending_dns**: Waiting for CNAME/A record to point to our edge.
+5. **provisioning_ssl**: Calling Cloudflare to issue certificates.
+6. **active**: Domain is live.
+7. **failed**: Terminating state for any step.
 
 ## Architecture
 
