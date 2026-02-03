@@ -1,6 +1,6 @@
 # Custom Domain SDK
 
-A production-grade TypeScript SDK for managing custom domains using Cloudflare Custom Hostnames. This SDK is framework-agnostic, database-agnostic, and implements a strict domain lifecycle state machine.
+A production-grade TypeScript SDK for managing custom domains using Cloudflare like Custom Hostnames. This SDK is framework-agnostic, database-agnostic, and implements a strict domain lifecycle state machine.
 
 ## Features
 
