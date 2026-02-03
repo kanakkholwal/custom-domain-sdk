@@ -1,3 +1,4 @@
+// DO NOT MODIFY WITHOUT A MIGRATION PLAN
 import { InvalidStateTransitionError } from "../errors/errors.js";
 import { DomainStatus } from "./domain.types.js";
 

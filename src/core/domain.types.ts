@@ -7,12 +7,15 @@ export type DomainStatus =
     | "active"
     | "failed";
 
+// export const verificationKey = "_cdnl.verify";
+export const verificationKey = "_cdl-tenancy-verification";
+
 export interface Domain {
     id: string;
     hostname: string;
     status: DomainStatus;
     verificationToken: string;
-    cloudflareHostnameId?: string;
+    adapterHostnameId?: string;
     error?: string;
     createdAt: Date;
     updatedAt: Date;

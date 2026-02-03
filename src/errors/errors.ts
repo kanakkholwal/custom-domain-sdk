@@ -23,11 +23,7 @@ export class DnsVerificationFailedError extends DomainError {
     }
 }
 
-export class CloudflareApiError extends DomainError {
-    constructor(message: string, public originalError?: unknown) {
-        super(`Cloudflare API error: ${message}`);
-    }
-}
+
 
 export class ConfigurationError extends DomainError {
     constructor(message: string) {

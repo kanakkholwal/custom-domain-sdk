@@ -1,6 +1,6 @@
-import { Domain } from "../core/domain.types.js";
-import { DomainNotFoundError } from "../errors/errors.js";
-import { DomainStore } from "./store.adapter.js";
+import { DomainNotFoundError } from "../errors/errors";
+import { Domain } from "./domain.types";
+import { DomainStore } from "./store.adapter";
 
 export class InMemoryDomainStore implements DomainStore {
     private readonly domains = new Map<string, Domain>();

@@ -1,23 +1,21 @@
-import { randomBytes, randomUUID } from "node:crypto";
-import { CloudflareAdapter } from "../adapters/cloudflare.adapter.js";
-import { DnsResolver } from "../adapters/dns.adapter.js";
-import { DomainStore } from "../adapters/store.adapter.js";
+import { randomUUID } from "node:crypto";
+import { AdapterInterface } from "../adapters/interface";
+import { DnsResolver } from "../dns/dns.resolver";
 import {
-    CloudflareApiError,
     DnsVerificationFailedError,
-    DomainNotFoundError,
-} from "../errors/errors.js";
-import { assertTransition } from "./domain.machine.js";
-import { Domain, DomainInstructions, DomainStatus } from "./domain.types.js";
+    DomainNotFoundError
+} from "../errors/errors";
+import { assertTransition } from "./domain.machine";
+import { Domain, DomainInstructions, DomainStatus, verificationKey } from "./domain.types";
+import { DomainStore } from "./store.adapter";
 
 export interface SDKConfig {
     store: DomainStore;
     dns: DnsResolver;
-    cloudflare: CloudflareAdapter;
+    adapter: AdapterInterface<any>;
     cnameTarget: string;
 }
 
-const verificationKey = "_cdl-tenancy-verification";
 
 export class DomainService {
     constructor(private config: SDKConfig) { }
@@ -52,14 +50,14 @@ export class DomainService {
         if (domain.status === "verified") {
             return this.getInstructions(domain);
         }
-
         assertTransition(domain.status, "verified");
 
         const txtRecords = await this.config.dns.resolveTxt(`${verificationKey}.${domain.hostname}`);
-
         if (txtRecords.includes(domain.verificationToken)) {
+            console.info("[checkVerification]:" + hostname, "Fetched TXT records:", txtRecords);
             return this.transition(domain, "verified");
         }
+        console.warn("[checkVerification]:" + hostname, "Verification token not found in DNS TXT records");
 
         throw new DnsVerificationFailedError(
             domain.hostname,
@@ -89,15 +87,25 @@ export class DomainService {
 
         assertTransition(domain.status, "provisioning_ssl");
 
-        // Verify DNS points to us before calling Cloudflare
-        const cnames = await this.config.dns.resolveCname(domain.hostname);
-        if (!cnames.includes(this.config.cnameTarget)) {
-            throw new CloudflareApiError(`DNS CNAME for ${domain.hostname} does not point to ${this.config.cnameTarget}`);
+        // Verify DNS points to us before calling adapter API : e.g. Cloudflare, etc.
+        const c_names = await this.config.dns.resolveCname(domain.hostname);
+        const aRecords = await this.config.dns.resolveA(domain.hostname);
+
+        if (
+            !c_names.includes(this.config.cnameTarget) &&
+            aRecords.length === 0
+        ) {
+            throw new DnsVerificationFailedError(
+                domain.hostname,
+                this.config.cnameTarget,
+                [...c_names, ...aRecords].join(", ") || "none"
+            );
         }
 
+        // Call adapter to create custom hostname
         try {
-            const cfId = await this.config.cloudflare.createCustomHostname(domain.hostname);
-            domain.cloudflareHostnameId = cfId;
+            const adapterId = await this.config.adapter.createCustomHostname(domain.hostname);
+            domain.adapterHostnameId = adapterId;
             return this.transition(domain, "provisioning_ssl");
         } catch (err) {
             await this.transition(domain, "failed", (err as Error).message);
@@ -107,14 +115,14 @@ export class DomainService {
 
     async syncStatus(hostname: string): Promise<DomainInstructions> {
         const domain = await this.getDomainOrThrow(hostname);
+        if (domain.status === "active") return this.getInstructions(domain);
 
-        if (!domain.cloudflareHostnameId) {
-            if (domain.status === "active") return this.getInstructions(domain);
-            throw new CloudflareApiError("No Cloudflare Hostname ID found for domain");
+        if (!domain.adapterHostnameId) {
+            throw Error("No adapterHostnameId found for domain");
         }
 
         try {
-            const cfStatus = await this.config.cloudflare.getCustomHostnameStatus(domain.cloudflareHostnameId);
+            const cfStatus = await this.config.adapter.getCustomHostnameStatus(domain.adapterHostnameId);
 
             if (cfStatus.status === "active") {
                 return this.transition(domain, "active");
@@ -136,7 +144,7 @@ export class DomainService {
         return this.getInstructions(domain);
     }
 
-    // --- Private Helpers ---
+    // Private Helpers
 
     private async getDomainOrThrow(hostname: string): Promise<Domain> {
         const domain = await this.config.store.getByHostname(hostname);
@@ -203,6 +211,8 @@ export class DomainService {
     }
 
     private generateToken(): string {
-        return `vc-token-${randomBytes(16).toString("hex")}`;
+        // TODO: Replace with random token generation in production
+        return `vc-token-5dbb2367f71952045de56834a1730c9d`;
+        // return `vc-token-${randomBytes(16).toString("hex")}`;
     }
 }

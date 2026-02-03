@@ -14,7 +14,7 @@
   },
   "include": [
     "src/**/*"
-  ],
+, "examples/adapters/cloudflare.sdk.adapter.ts"  ],
   "exclude": [
     "node_modules",
     "examples"
