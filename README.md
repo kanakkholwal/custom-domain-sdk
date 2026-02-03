@@ -10,6 +10,8 @@ A production-grade TypeScript SDK for managing custom domains using Cloudflare l
 - **Provider Agnostic (DNS)**: Abstracted behind a `DnsResolver` interface.
 - **Typed Errors**: Proper error handling for easier debugging.
 
+For detailed usage, architecture, and API reference, see [DOCUMENTATION.md](DOCUMENTATION.md).
+
 ## Installation
 
 ```bash
@@ -87,6 +89,10 @@ graph TD
     end
 ```
 
+## Contributing
+
+Contributions are welcome! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get started, our development workflow, and how to submit pull requests.
+
 ## License
 
-MIT
+This project is licensed under the MIT License. See the [LICENSE.md](LICENSE.md) file for details.
