@@ -1,6 +1,6 @@
 {
   "name": "custom-domain-sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "TypeScript SDK for managing custom domains",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -18,6 +18,10 @@
   "author": {
     "name": "Kanak Kholwal",
     "url": "https://github.com/kanakkholwal"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kanakkholwal/custom-domain-sdk.git"
   },
   "license": "MIT",
   "devDependencies": {
