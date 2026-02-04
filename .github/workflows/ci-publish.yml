@@ -79,7 +79,7 @@ jobs:
       
       - name: Build package
         run: |
-          bun run build:package
+          bun run build
           echo "✅ Package built successfully"
 
       - name: Verify build output
