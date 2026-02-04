@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { AdapterInterface } from "../adapters/interface";
 import { DnsResolver } from "../dns/dns.resolver";
 import {
@@ -212,7 +212,7 @@ export class DomainService {
 
     private generateToken(): string {
         // TODO: Replace with random token generation in production
-        return `vc-token-5dbb2367f71952045de56834a1730c9d`;
-        // return `vc-token-${randomBytes(16).toString("hex")}`;
+        // return `vc-token-5dbb2367f71952045de56834a1730c9d`;
+        return `vc-token-${randomBytes(16).toString("hex")}`;
     }
 }
