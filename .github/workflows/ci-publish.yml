@@ -107,7 +107,6 @@ jobs:
           github.event.inputs.registry == 'npm' ||
           github.event.inputs.registry == 'both'
         run: |
-          cd package
           npm publish --provenance --access public
           echo "✅ Published to NPM Registry"
         env:
@@ -132,7 +131,6 @@ jobs:
           github.event.inputs.registry == 'github' ||
           github.event.inputs.registry == 'both'
         run: |
-          cd package
           npm publish
           echo "✅ Published to GitHub Packages"
         env:
