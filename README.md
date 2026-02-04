@@ -89,6 +89,59 @@ graph TD
     end
 ```
 
+## Why this exists
+
+Custom domains look trivial until you try to ship them properly.
+
+At first it’s just: `"Add a TXT record, point a CNAME, redirect traffic."`
+
+Then reality hits:
+
+- Subdomains vs apex domains behave differently
+- DNS propagation lies to you
+- CNAME-only checks break with ALIAS / flattened records
+- TLS provisioning is asynchronous and stateful
+- Providers return half-documented statuses
+- You end up rewriting the same glue code in every project
+
+Most implementations mix all of this directly into app code, with hidden assumptions and implicit state transitions. It works.. until it doesn’t, and then it’s painful to debug.
+
+This SDK exists to make that logic *explicit, deterministic, and reusable*.
+
+## Non-goals
+
+This project is intentionally scoped. If you're looking for an all-in-one platform, this is probably not it.
+
+This SDK **does not**:
+
+- Try to be a DNS provider
+
+- Serve HTTP traffic or handle redirects
+
+- Automatically retry, poll, or "eventually fix" DNS issues
+
+- Hide provider limitations or quota constraints
+
+- Manage databases, background jobs, or cron workers
+
+- Abstract away infrastructure reality
+
+It also does not attempt to:
+
+- Guess DNS intent (CNAME vs A vs ALIAS)
+
+- Verify ownership at parent domains for convenience
+
+- Auto-advance states behind the scenes
+
+- Paper over Cloudflare (or any provider) errors
+
+Every state transition is explicit.\
+Every failure is surfaced.\
+Retries and polling are the caller's responsibility by design.
+
+If you want something that "just works" by doing magic in the background, this SDK will feel strict.
+
 ## Contributing
 
 Contributions are welcome! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get started, our development workflow, and how to submit pull requests.
