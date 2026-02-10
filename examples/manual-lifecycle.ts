@@ -4,8 +4,8 @@ import { NodeDnsResolver } from "../src/dns/dns.node";
 import { DryRunCloudflareAdapter } from "./adapters/dry.adapter";
 
 
-const CNAME_TARGET = "edge.nexonauts.com";
-const CLIENT_DOMAIN = "go.kanak.eu.org";
+const CNAME_TARGET = "edge.example.com";
+const CLIENT_DOMAIN = "go.example.xyz";
 
 
 async function main() {

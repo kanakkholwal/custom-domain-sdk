@@ -8,8 +8,8 @@ import { CloudflareAdapter } from "./adapters/cloudflare.adapter";
 // import { CloudflareAdapter } from "./adapters/cloudflare.sdk.adapter";
 
 
-const CNAME_TARGET = "edge.nexonauts.com";
-const CLIENT_DOMAIN = "go.kanak.eu.org";
+const CNAME_TARGET = "edge.example.com";
+const CLIENT_DOMAIN = "go.example.xyz";
 
 
 async function main() {
