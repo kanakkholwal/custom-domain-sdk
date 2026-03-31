@@ -108,6 +108,8 @@ Most implementations mix all of this directly into app code, with hidden assumpt
 
 This SDK exists to make that logic *explicit, deterministic, and reusable*.
 
+Example: traffic handler - [kanakkholwal/redirection-microservice](https://github.com/kanakkholwal/redirection-microservice)
+
 ## Non-goals
 
 This project is intentionally scoped. If you're looking for an all-in-one platform, this is probably not it.
